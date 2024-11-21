@@ -23,6 +23,5 @@ class App(tk.Tk):
 
         if file:
             self.model.set(file.name)
-            print(self.model.get())
         else:
             self.model.set("No file selected")
