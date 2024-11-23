@@ -52,7 +52,7 @@ class App(tk.Tk):
 
         # Log Info with Scrollbar
         log_frame = tk.Frame(config_frame)
-        log_frame.place(x=75, y=565, width=655, height=70)
+        log_frame.place(x=75, y=535, width=655, height=50)
 
         self.log_text_widget = tk.Text(
             log_frame,
