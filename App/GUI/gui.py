@@ -1,9 +1,10 @@
-import os
-from datetime import datetime
+from App.Network.server import Server
 import tkinter as tk
 from tkinter import *
 from tkinter.filedialog import askopenfile, askdirectory
 from tkinter import ttk
+from datetime import datetime
+import os
 import torch
 
 class App(tk.Tk):
@@ -15,6 +16,8 @@ class App(tk.Tk):
         self.data_path = tk.StringVar()
         self.model_params = None
         self.data_files = []
+        self.server = None
+        self.server_running = False
 
         style = ttk.Style(self)
         style.configure("TNotebook.Tab", relief="groove")
@@ -23,14 +26,27 @@ class App(tk.Tk):
 
         # Initialize frames
         config_frame = tk.Frame(self.nb)
+        network_frame = tk.Frame(self.nb)
         model_frame = tk.Frame(self.nb)
         data_frame = tk.Frame(self.nb)
 
         # Frames to notebook
         self.nb.add(config_frame, text="Config")
+        self.nb.add(network_frame, text="Network")
         self.nb.add(model_frame, text="Model")
         self.nb.add(data_frame, text="Data")
         self.nb.pack(expand=1, fill='both')
+
+        # Activate Server Button
+        self.server_button = tk.Button(
+            network_frame, text="Activate Server", relief="groove", command=self.toggle_server
+        )
+        self.server_button.place(x=20, y=200)
+
+        # Server Port Entry
+        self.port_var = tk.StringVar(value="8080")
+        tk.Label(network_frame, text="Port:").place(x=20, y=160)
+        tk.Entry(network_frame, textvariable=self.port_var, width=10).place(x=70, y=160)
 
         load_model_button = tk.Button(config_frame, text="Load Model", relief="groove", command=self.get_model)
         load_model_button.place(x=20, y=200)
@@ -50,7 +66,7 @@ class App(tk.Tk):
         label_data_dir = tk.Label(config_frame, font=("Arial", 12), textvariable=self.data_path, relief="sunken", width=50)
         label_data_dir.place(x=100, y=161)
 
-        # Log Info with Scrollbar
+        # Log Info with Scrollbar in Config Frame
         log_frame = tk.Frame(config_frame)
         log_frame.place(x=75, y=535, width=655, height=50)
 
@@ -68,6 +84,25 @@ class App(tk.Tk):
         log_scrollbar.pack(side="right", fill="y")
         self.log_text_widget.configure(yscrollcommand=log_scrollbar.set)
 
+        # Log Info with Scrollbar in Network Frame
+        log_frame_network = tk.Frame(network_frame)
+        log_frame_network.place(x=75, y=535, width=655, height=50)
+
+        self.log_text_widget_network = tk.Text(
+            log_frame_network,
+            font=("Arial", 10),
+            wrap="word",
+            state="disabled",
+            height=5,
+            width=55,
+        )
+        self.log_text_widget_network.pack(side="left", fill="both", expand=True)
+
+        log_scrollbar_network = tk.Scrollbar(log_frame_network, orient="vertical", command=self.log_text_widget_network.yview)
+        log_scrollbar_network.pack(side="right", fill="y")
+        self.log_text_widget_network.configure(yscrollcommand=log_scrollbar_network.set)
+
+
         config_label = tk.Label(config_frame, text="Configuration Settings", font=("Arial", 16))
         config_label.place(x=200, y=50)
 
@@ -81,13 +116,17 @@ class App(tk.Tk):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"[{current_time}] {message}\n"
 
-        # Enable the Text widget to allow inserting text
+        # Log to Config Frame
         self.log_text_widget.configure(state="normal")
-        self.log_text_widget.insert("end", log_entry)  # Add the log entry at the end
-        self.log_text_widget.configure(state="disabled")  # Disable editing again
-
-        # Scroll to the end
+        self.log_text_widget.insert("end", log_entry)
+        self.log_text_widget.configure(state="disabled")
         self.log_text_widget.see("end")
+
+        # Log to Network Frame
+        self.log_text_widget_network.configure(state="normal")
+        self.log_text_widget_network.insert("end", log_entry)
+        self.log_text_widget_network.configure(state="disabled")
+        self.log_text_widget_network.see("end")
 
     def get_model(self):
         file = askopenfile()
@@ -118,7 +157,7 @@ class App(tk.Tk):
 
         if folder:
             self.data_path.set(folder)
-            self.data_files = os.listdir(folder)  # List all files in the folder
+            self.data_files = os.listdir(folder)
             self.log(f"Folder loaded successfully: {folder}")
         else:
             self.data_path.set("No folder selected")
@@ -193,3 +232,29 @@ class App(tk.Tk):
             param_label.pack(anchor="w", padx=10, pady=5, fill="x")
         
         self.log("Model Params: Displaying model parameters.")
+
+    def toggle_server(self):
+        if self.server_running:
+            self.stop_server()
+        else:
+            self.start_server()
+
+    def start_server(self):
+        try:
+            port = int(self.port_var.get())
+            self.server = Server(self)
+            self.server.start_server(port)
+            self.server_running = True
+            self.server_button.config(text="Shutdown Server")
+            self.log("Server started successfully.")
+        except ValueError:
+            self.log("Invalid port. Please enter a valid number.")
+        except Exception as e:
+            self.log(f"Error starting server: {e}")
+
+    def stop_server(self):
+        if self.server:
+            self.server.stop_server()
+            self.server_running = False
+            self.server_button.config(text="Activate Server")
+            self.log("Server stopped successfully.")
