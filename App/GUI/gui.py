@@ -1,4 +1,5 @@
 from App.Network.server import Server
+from App.Network.client import Client
 import tkinter as tk
 from tkinter import *
 from tkinter.filedialog import askopenfile, askdirectory
@@ -18,6 +19,8 @@ class App(tk.Tk):
         self.data_files = []
         self.server = None
         self.server_running = False
+        self.connected_peers = []
+        self.client = Client(self)
 
         style = ttk.Style(self)
         style.configure("TNotebook.Tab", relief="groove")
@@ -42,6 +45,22 @@ class App(tk.Tk):
             network_frame, text="Activate Server", relief="groove", command=self.toggle_server
         )
         self.server_button.place(x=20, y=200)
+
+        # Client Port Entry
+        self.peer_table = ttk.Treeview(network_frame, columns=("Host", "Port"), show="headings")
+        self.peer_table.heading("Host", text="Host")
+        self.peer_table.heading("Port", text="Port")
+        self.peer_table.place(x=300, y=160, width=400, height=300)
+
+        tk.Label(network_frame, text="Peer Host:").place(x=20, y=300)
+        self.peer_host_var = tk.StringVar(value="127.0.0.1")
+        tk.Entry(network_frame, textvariable=self.peer_host_var, width=15).place(x=100, y=300)
+
+        tk.Label(network_frame, text="Peer Port:").place(x=20, y=340)
+        self.peer_port_var = tk.StringVar(value="8081")
+        tk.Entry(network_frame, textvariable=self.peer_port_var, width=10).place(x=100, y=340)
+
+        tk.Button(network_frame, text="Connect to Peer", command=self.connect_to_peer).place(x=20, y=380)
 
         # Server Port Entry
         self.port_var = tk.StringVar(value="8080")
@@ -127,7 +146,7 @@ class App(tk.Tk):
         self.log_text_widget_network.insert("end", log_entry)
         self.log_text_widget_network.configure(state="disabled")
         self.log_text_widget_network.see("end")
-
+        
     def get_model(self):
         file = askopenfile()
         if file and file.name.lower().endswith('.pth'):
@@ -253,8 +272,56 @@ class App(tk.Tk):
             self.log(f"Error starting server: {e}")
 
     def stop_server(self):
-        if self.server:
-            self.server.stop_server()
-            self.server_running = False
+        if self.server and self.server.is_running:  # Check if the server is running
+            self.server.stop_server()  # Call the server's stop_server method
+            self.server_running = False  # Update the App's server_running flag
             self.server_button.config(text="Activate Server")
             self.log("Server stopped successfully.")
+
+            # Clear only the local server's peer table
+            self.clear_peer_table()
+
+    def connect_to_peer(self):
+        host = self.peer_host_var.get()
+        port = self.peer_port_var.get()
+        try:
+            port = int(port)
+            # Attempt to connect to the peer
+            self.client.connect_to_server(host, port)
+            if self.client.is_connected:  # Add only if the connection is successful
+                self.add_peer_to_table(host, port)
+            else:
+                self.log(f"Failed to connect to peer {host}:{port}.")
+        except ValueError:
+            self.log("Invalid port. Please enter a valid number.")
+        except Exception as e:
+            self.log(f"Unexpected error: {e}")
+
+
+    def add_peer_to_table(self, host, port):
+        # Add peer to the table and the connected peers list
+        if (host, port) not in self.connected_peers:  # Prevent duplicates
+            self.connected_peers.append((host, port))
+            self.peer_table.insert("", "end", values=(host, port))
+
+    def clear_peer_table(self):
+        # Clear the Treeview
+        for item in self.peer_table.get_children():
+            self.peer_table.delete(item)
+        # Clear the connected peers list
+        self.connected_peers = []
+        self.log("Peer table cleared.")
+
+    def disconnect_from_all_peers(self):
+        if self.client.is_connected:
+            self.client.disconnect()
+            self.log("Disconnected from all peers.")
+
+    def handle_peer_disconnection(self, peer_address):
+        host, port = peer_address
+
+        # Only remove from active connections, not the peer table
+        if (host, port) in self.connected_peers:
+            self.connected_peers.remove((host, port))
+
+        self.log(f"Active connection to {host}:{port} removed.")
