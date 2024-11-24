@@ -72,6 +72,8 @@ class App(tk.Tk):
         # Connect to peer button
         tk.Button(network_frame, text="Connect to Peer", command=self.connect_to_peer).place(x=20, y=380)
         
+        # CONFIG FRAME:
+        # Buttons:
         load_model_button = tk.Button(config_frame, text="Load Model", relief="groove", command=self.get_model)
         load_model_button.place(x=20, y=200)
 
@@ -90,6 +92,7 @@ class App(tk.Tk):
         label_data_dir = tk.Label(config_frame, font=("Arial", 12), textvariable=self.data_path, relief="sunken", width=50)
         label_data_dir.place(x=100, y=161)
 
+        # LOG:
         # Log Info with Scrollbar in Config Frame
         log_frame = tk.Frame(config_frame)
         log_frame.place(x=75, y=535, width=655, height=50)
@@ -126,16 +129,21 @@ class App(tk.Tk):
         log_scrollbar_network.pack(side="right", fill="y")
         self.log_text_widget_network.configure(yscrollcommand=log_scrollbar_network.set)
 
-
+        # Config label
         config_label = tk.Label(config_frame, text="Configuration Settings", font=("Arial", 16))
         config_label.place(x=200, y=50)
 
+        # MODEL FRAME:
+        # Model label
         model_label = tk.Label(model_frame, text="Model Information", font=("Arial", 16))
         model_label.pack(pady=20)
 
+        # DATA FRAME:
+        # Data label
         data_label = tk.Label(data_frame, text="Data Information", font=("Arial", 16))
         data_label.pack(pady=20)
-
+    
+    # FUNCTIONS:
     def log(self, message):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"[{current_time}] {message}\n"
