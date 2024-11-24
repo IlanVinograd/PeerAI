@@ -325,12 +325,7 @@ class App(tk.Tk):
         self.connected_peers = []
         self.log("Peer table cleared.")
 
-    def disconnect_from_all_peers(self):
-        if self.client.is_connected:
-            self.client.disconnect()
-            self.log("Disconnected from all peers.")
-
-    def handle_peer_disconnection(self, peer_address):
+    def handle_peer_disconnection(self, peer_address): # Needs invistigation
         host, port = peer_address
 
         # Only remove from active connections, not the peer table
