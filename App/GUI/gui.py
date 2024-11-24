@@ -27,46 +27,51 @@ class App(tk.Tk):
 
         self.nb = ttk.Notebook(self)
 
-        # Initialize frames
+        # Initialize frames (Tabs)
         config_frame = tk.Frame(self.nb)
         network_frame = tk.Frame(self.nb)
         model_frame = tk.Frame(self.nb)
         data_frame = tk.Frame(self.nb)
 
-        # Frames to notebook
+        # Frames (Tabs) to notebook
         self.nb.add(config_frame, text="Config")
         self.nb.add(network_frame, text="Network")
         self.nb.add(model_frame, text="Model")
         self.nb.add(data_frame, text="Data")
         self.nb.pack(expand=1, fill='both')
 
-        # Activate Server Button
+        # SERVER:
+        # Activate server buutton
         self.server_button = tk.Button(
             network_frame, text="Activate Server", relief="groove", command=self.toggle_server
         )
         self.server_button.place(x=20, y=200)
 
-        # Client Port Entry
+        # Enter server port
+        self.port_var = tk.StringVar(value="54321")
+        tk.Label(network_frame, text="Port:").place(x=20, y=160)
+        tk.Entry(network_frame, textvariable=self.port_var, width=10).place(x=70, y=160)
+
+        # CLIENT:
+        # Client peer/server connected table
         self.peer_table = ttk.Treeview(network_frame, columns=("Host", "Port"), show="headings")
         self.peer_table.heading("Host", text="Host")
         self.peer_table.heading("Port", text="Port")
         self.peer_table.place(x=300, y=160, width=400, height=300)
 
+        # Input  box for connecting to peer host
         tk.Label(network_frame, text="Peer Host:").place(x=20, y=300)
         self.peer_host_var = tk.StringVar(value="127.0.0.1")
         tk.Entry(network_frame, textvariable=self.peer_host_var, width=15).place(x=100, y=300)
 
+        # Input  box for connecting to peer port
         tk.Label(network_frame, text="Peer Port:").place(x=20, y=340)
-        self.peer_port_var = tk.StringVar(value="8081")
+        self.peer_port_var = tk.StringVar(value="54321")
         tk.Entry(network_frame, textvariable=self.peer_port_var, width=10).place(x=100, y=340)
 
+        # Connect to peer button
         tk.Button(network_frame, text="Connect to Peer", command=self.connect_to_peer).place(x=20, y=380)
-
-        # Server Port Entry
-        self.port_var = tk.StringVar(value="8080")
-        tk.Label(network_frame, text="Port:").place(x=20, y=160)
-        tk.Entry(network_frame, textvariable=self.port_var, width=10).place(x=70, y=160)
-
+        
         load_model_button = tk.Button(config_frame, text="Load Model", relief="groove", command=self.get_model)
         load_model_button.place(x=20, y=200)
 

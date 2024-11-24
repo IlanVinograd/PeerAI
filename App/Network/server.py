@@ -2,9 +2,9 @@ import socket
 import threading
 
 class Server:
-    def __init__(self, app, host="127.0.0.1"):
+    def __init__(self, app):
         self.app = app
-        self.server_host = host
+        self.server_host = socket.gethostbyname(socket.gethostname())
         self.server_port = None  # Port to be chosen by the user
         self.server_socket = None
         self.is_running = False
