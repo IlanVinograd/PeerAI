@@ -35,7 +35,6 @@ class Client:
     def monitor_connection(self):
         while self.is_connected:
             try:
-                ping_message = f"PING from {self.client_id}".encode('utf-8')
                 self.client_socket.send(b"PING")
                 time.sleep(5)
             except Exception as e:
@@ -53,7 +52,7 @@ class Client:
                 message = data.decode('utf-8')
 
                 # Handle server shutdown notification
-                if message == "REMOVE_CONNECTION":
+                if message == "REMOVE_CONNECTION": # Where is it used?? Server Shutdown?? need fix.
                     self.app.log(f"Server {self.server_address} is disconnecting.")
                     self.disconnect()
                     break
@@ -65,7 +64,7 @@ class Client:
             self.disconnect()  # Only disconnect active connections
 
 
-    def send_message(self, message):
+    def send_message(self, message): # Not in used
         if self.is_connected:
             try:
                 self.client_socket.send(message.encode('utf-8'))
