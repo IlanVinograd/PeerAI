@@ -291,9 +291,6 @@ class App(tk.Tk):
             self.server_button.config(text="Activate Server")
             self.log("Server stopped successfully.")
 
-            # Clear only the local server's peer table
-            self.clear_peer_table()
-
     def connect_to_peer(self):
         host = self.peer_host_var.get()
         port = self.peer_port_var.get()
@@ -317,15 +314,7 @@ class App(tk.Tk):
             self.connected_peers.append((host, port))
             self.peer_table.insert("", "end", values=(host, port))
 
-    def clear_peer_table(self):
-        # Clear the Treeview
-        for item in self.peer_table.get_children():
-            self.peer_table.delete(item)
-        # Clear the connected peers list
-        self.connected_peers = []
-        self.log("Peer table cleared.")
-
-    def handle_peer_disconnection(self, peer_address): # Needs invistigation + Probably was for remove peers when server shutdown.
+    def handle_peer_disconnection(self, peer_address): # Needs invistigation + Probably was for remove peers when server shutdown but I think it probaly implemented in listen server func .
         host, port = peer_address
 
         # Only remove from active connections, not the peer table

@@ -52,7 +52,7 @@ class Client:
                 message = data.decode('utf-8')
 
                 # Handle server shutdown notification
-                if message == "REMOVE_CONNECTION": # Where is it used?? Server Shutdown?? need fix.
+                if message == "SERVER_SHUTDOWN": # When Server shutdown is send "SERVER_SHUTDOWN"
                     self.app.log(f"Server {self.server_address} is disconnecting.")
                     self.disconnect()
                     break
@@ -61,7 +61,8 @@ class Client:
         except Exception as e:
             self.app.log(f"Connection error: {e}")
         finally:
-            self.disconnect()  # Only disconnect active connections
+            if self.is_connected: 
+                self.disconnect()  # Only disconnect active connections
 
 
     def send_message(self, message): # Not in used
