@@ -17,13 +17,13 @@ Below is the system architecture diagram for the project:
    ```
 ### Steps to Run
 1. Navigate to the project directory:
-  ```bash
-  cd /path/to/PeerAI
-  ```
+   ```bash
+   cd /path/to/PeerAI
+   ```
 2. Run the application:
    ```bash
    python -m App.app
-   ```
+   ```   
 
 
 
