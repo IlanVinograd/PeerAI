@@ -27,46 +27,53 @@ class App(tk.Tk):
 
         self.nb = ttk.Notebook(self)
 
-        # Initialize frames
+        # Initialize frames (Tabs)
         config_frame = tk.Frame(self.nb)
         network_frame = tk.Frame(self.nb)
         model_frame = tk.Frame(self.nb)
         data_frame = tk.Frame(self.nb)
 
-        # Frames to notebook
+        # Frames (Tabs) to notebook
         self.nb.add(config_frame, text="Config")
         self.nb.add(network_frame, text="Network")
         self.nb.add(model_frame, text="Model")
         self.nb.add(data_frame, text="Data")
         self.nb.pack(expand=1, fill='both')
 
-        # Activate Server Button
+        # SERVER:
+        # Activate server buutton
         self.server_button = tk.Button(
             network_frame, text="Activate Server", relief="groove", command=self.toggle_server
         )
         self.server_button.place(x=20, y=200)
 
-        # Client Port Entry
+        # Enter server port
+        self.port_var = tk.StringVar(value="54321")
+        tk.Label(network_frame, text="Port:").place(x=20, y=160)
+        tk.Entry(network_frame, textvariable=self.port_var, width=10).place(x=70, y=160)
+
+        # CLIENT:
+        # Client peer/server connected table
         self.peer_table = ttk.Treeview(network_frame, columns=("Host", "Port"), show="headings")
         self.peer_table.heading("Host", text="Host")
         self.peer_table.heading("Port", text="Port")
         self.peer_table.place(x=300, y=160, width=400, height=300)
 
+        # Input  box for connecting to peer host
         tk.Label(network_frame, text="Peer Host:").place(x=20, y=300)
         self.peer_host_var = tk.StringVar(value="127.0.0.1")
         tk.Entry(network_frame, textvariable=self.peer_host_var, width=15).place(x=100, y=300)
 
+        # Input  box for connecting to peer port
         tk.Label(network_frame, text="Peer Port:").place(x=20, y=340)
-        self.peer_port_var = tk.StringVar(value="8081")
+        self.peer_port_var = tk.StringVar(value="54321")
         tk.Entry(network_frame, textvariable=self.peer_port_var, width=10).place(x=100, y=340)
 
+        # Connect to peer button
         tk.Button(network_frame, text="Connect to Peer", command=self.connect_to_peer).place(x=20, y=380)
-
-        # Server Port Entry
-        self.port_var = tk.StringVar(value="8080")
-        tk.Label(network_frame, text="Port:").place(x=20, y=160)
-        tk.Entry(network_frame, textvariable=self.port_var, width=10).place(x=70, y=160)
-
+        
+        # CONFIG FRAME:
+        # Buttons:
         load_model_button = tk.Button(config_frame, text="Load Model", relief="groove", command=self.get_model)
         load_model_button.place(x=20, y=200)
 
@@ -85,6 +92,7 @@ class App(tk.Tk):
         label_data_dir = tk.Label(config_frame, font=("Arial", 12), textvariable=self.data_path, relief="sunken", width=50)
         label_data_dir.place(x=100, y=161)
 
+        # LOG:
         # Log Info with Scrollbar in Config Frame
         log_frame = tk.Frame(config_frame)
         log_frame.place(x=75, y=535, width=655, height=50)
@@ -121,16 +129,21 @@ class App(tk.Tk):
         log_scrollbar_network.pack(side="right", fill="y")
         self.log_text_widget_network.configure(yscrollcommand=log_scrollbar_network.set)
 
-
+        # Config label
         config_label = tk.Label(config_frame, text="Configuration Settings", font=("Arial", 16))
         config_label.place(x=200, y=50)
 
+        # MODEL FRAME:
+        # Model label
         model_label = tk.Label(model_frame, text="Model Information", font=("Arial", 16))
         model_label.pack(pady=20)
 
+        # DATA FRAME:
+        # Data label
         data_label = tk.Label(data_frame, text="Data Information", font=("Arial", 16))
         data_label.pack(pady=20)
-
+    
+    # FUNCTIONS:
     def log(self, message):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"[{current_time}] {message}\n"
@@ -278,9 +291,6 @@ class App(tk.Tk):
             self.server_button.config(text="Activate Server")
             self.log("Server stopped successfully.")
 
-            # Clear only the local server's peer table
-            self.clear_peer_table()
-
     def connect_to_peer(self):
         host = self.peer_host_var.get()
         port = self.peer_port_var.get()
@@ -304,20 +314,7 @@ class App(tk.Tk):
             self.connected_peers.append((host, port))
             self.peer_table.insert("", "end", values=(host, port))
 
-    def clear_peer_table(self):
-        # Clear the Treeview
-        for item in self.peer_table.get_children():
-            self.peer_table.delete(item)
-        # Clear the connected peers list
-        self.connected_peers = []
-        self.log("Peer table cleared.")
-
-    def disconnect_from_all_peers(self):
-        if self.client.is_connected:
-            self.client.disconnect()
-            self.log("Disconnected from all peers.")
-
-    def handle_peer_disconnection(self, peer_address):
+    def handle_peer_disconnection(self, peer_address): # Needs invistigation + Probably was for remove peers when server shutdown but I think it probaly implemented in listen server func .
         host, port = peer_address
 
         # Only remove from active connections, not the peer table

@@ -2,9 +2,9 @@ import socket
 import threading
 
 class Server:
-    def __init__(self, app, host="127.0.0.1"):
+    def __init__(self, app):
         self.app = app
-        self.server_host = host
+        self.server_host = socket.gethostbyname(socket.gethostname())
         self.server_port = None  # Port to be chosen by the user
         self.server_socket = None
         self.is_running = False
@@ -30,10 +30,9 @@ class Server:
             while self.is_running:
                 try:
                     self.server_socket.settimeout(1.0)  # Timeout in seconds
-                    client_socket, client_address = self.server_socket.accept()
-                    self.connected_peers.append((client_socket, client_address))  # Store both socket and address
+                    client_socket, client_address = self.server_socket.accept() # socket info , address: example 0.0.0.0:12345
+                    self.connected_peers.append((client_socket, client_address))  # Store both socket and address in connected_peers[]
                     self.app.log(f"Connection from {client_address}")
-                    self.app.log(f"Connected peers: {[peer[1] for peer in self.connected_peers]}")
                     threading.Thread(target=self.handle_client, args=(client_socket,)).start()
                 except socket.timeout:
                     continue  # Ignore timeout exceptions and continue looping
@@ -43,19 +42,19 @@ class Server:
         except Exception as e:
             self.app.log(f"Error in accept_clients: {e}")
 
-    def handle_client(self, client_socket):
+    def handle_client(self, client_socket): # Could be add logic for DISCONNECT MSG from client.
         client_address = None
         try:
             client_address = client_socket.getpeername()  # Get the client's address
             while self.is_running:
-                data = client_socket.recv(1024)
+                data = client_socket.recv(1024) # Change it later for bigger packets (4096)
                 if not data:
                     break
                 message = data.decode('utf-8')
 
                 # Log the PING message and client address
                 self.app.log(f"Received from {client_address}: {message}")
-                client_socket.send(f"ECHO: {message}".encode('utf-8'))
+                client_socket.send(f"ECHO: {message}".encode('utf-8')) # if it arise excpetion it wil remove from list the connected peer.
         except Exception as e:
             self.app.log(f"Client error: {e}")
         finally:
